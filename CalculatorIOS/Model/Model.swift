@@ -23,7 +23,24 @@ enum Buttons: String {
     case negative = "+/-"
     case clear = "AC"
     
-//    var buttonColor: Color{
-//        
-//    }
+    var buttonColor: Color{
+        switch self {
+        case .clear, .negative, .percent:
+            return Color.grayBut
+        case .divide, .multiple, .minus, .plus, .equal:
+            return Color.orangeBut
+        default:
+            return Color.darkGrayBut
+        }
+    }
+    
+    var buttonFonColor: Color{
+        switch self {
+        case .clear, .negative, .percent:
+            return Color.black
+        default:
+            return Color.white
+        }
+    }
+    
 }
