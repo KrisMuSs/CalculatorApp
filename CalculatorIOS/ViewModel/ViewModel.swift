@@ -20,60 +20,123 @@ class ViewModel: ObservableObject{
     // MARK: - Methods
  
     // MARK: Tap Button Method
-    
-    func didTap(item: Buttons){
-        switch item {
-        case .plus, .minus, .multiple, .divide:
-            currentOperation = item.toOperation()
-                   number = Double(value) ?? 0
-                   value = "0"
-        case .equal:
-            if let currentValue = Double(value){
-                value = formatResult(performOperation(currentValue))                
-            }
-        case .decimal:
-            if !value.contains("."){
-                value += "."
-            }
-        case .percent:
-            if let currentValue = Double(value){
-                value = formatResult(currentValue / 100 * number)
-            }
-        case .negative:
-            if let currentValue = Double(value){
-                value = formatResult(-currentValue)
-            }
-        case .clear:
-            value = "0"
-        default:
-            if value == "0"{
-                value = item.rawValue
-            }
-            else{
-                value += item.rawValue
+    func didTap(item: Buttons) {
+        
+     if let lastChar = value.last,
+                "+-*/".contains(lastChar) &&
+            "+-*/".contains(item.rawValue) {
+         if String(lastChar) != item.rawValue{
+             value = String(value.dropLast()) + item.rawValue
+         }
+     }
+        else{
+            switch item {
+            case .clear:
+                value = "0"
+                
+            case .equal:
+                // Error if thr number equal 3.233e+09
+                if (Double(value) == nil){
+                    if let lastChar = value.last,
+                       !"+-*/.".contains(lastChar) {
+                        value = formatResult(Сalculating(value))
+                    }
+                }
+                
+            case .negative:
+                if let currentValue = Double(value){
+                    value = formatResult(-currentValue)
+                    currentOperation = .none
+                }
+            case .percent:
+                let components = value.split(whereSeparator: { !$0.isNumber && $0 != "." })
+                if let lastComponent = components.last, let lastNumber = Double(lastComponent) {
+                    let modStr = String(value.dropLast(formatResult(lastNumber).count))
+                    let lastNumber = formatResult(lastNumber / 100)
+                    value = modStr + lastNumber
+                }
+                
+            default:
+                if (value == "0") && ("+-*/.".contains(item.rawValue)){
+                    
+                }
+                else if value == "0"{
+                    value = item.rawValue
+                    
+                }
+                else {
+                    value += item.rawValue
+                }
+                
+                
             }
         }
     }
-    // MARK: Helper Culculate Method
-    func performOperation(_ currentValue: Double) -> Double {
-            switch currentOperation {
-            case .addition:
-                return number + currentValue
-            case .subtract:
-                return number - currentValue
-            case .multiply:
-                return number * currentValue
-            case .divide:
-                return number / currentValue
-            default:
-                return currentValue
-            }
-        }
+    
+    // MARK: СalculatingExpression
+      func Сalculating(_ expression: String) -> Double {
+          var numbers: [Double] = []
+          var operations: [Character] = []
+          var currentNumber = ""
+
+          
+          for (index, char) in expression.enumerated() {
+              if char.isNumber || char == "." {
+                  currentNumber.append(char)
+              } else if "+-*/".contains(char) {
+                  if index == 0 && char == "-" {
+                      currentNumber.append(char)
+                      continue
+                  }
+                  if let number = Double(currentNumber) {
+                      numbers.append(number)
+                  }
+                  operations.append(char)
+                  currentNumber = ""
+              }
+          }
+
+          if let number = Double(currentNumber) {
+              numbers.append(number)
+          }
+
+          var index = 0
+          while index < operations.count {
+              if operations[index] == "*" || operations[index] == "/" {
+                  let left = numbers[index]
+                  let right = numbers[index + 1]
+                  let result: Double
+
+                  if operations[index] == "*" {
+                      result = left * right
+                  } else {
+                      result = left / right
+                  }
+                  numbers[index] = result
+                  numbers.remove(at: index + 1)
+                  operations.remove(at: index)
+              } else {
+                  index += 1
+              }
+          }
+
+          index = 0
+          while index < operations.count {
+              let left = numbers[index]
+              let right = numbers[index + 1]
+              let result = operations[index] == "+" ? left + right : left - right
+              numbers[index] = result
+              numbers.remove(at: index + 1)
+              operations.remove(at: index)
+          }
+
+          return numbers.first ?? 0
+      }
 
     // MARK: Remove Last "0" Method
-        func formatResult(_ result: Double) -> String {
-            return String(format: "%g", result)
-        }
+    func formatResult(_ result: Double) -> String {
+        return String(format: "%g", result)
+    }
     
     //MARK: Size of buttons
     /*

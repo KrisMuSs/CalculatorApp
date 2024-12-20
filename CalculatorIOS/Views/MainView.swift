@@ -17,11 +17,15 @@ struct MainView: View {
                 // MARK: Display
                 HStack{
                     Spacer()
+                    
                     Text(viewModel.value)
                         .foregroundColor(.white)
                         .font(.system(size: 90))
                         .fontWeight(.light)
                         .padding(.horizontal, 28)
+                        .minimumScaleFactor(0.5)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
                     
                 }//HStack
                 
@@ -31,6 +35,7 @@ struct MainView: View {
                         ForEach(row, id: \.self) { item in
                             Button {
                                 viewModel.didTap(item: item)
+                                
                             } label: {
                                 Text(item.rawValue)
                                     .frame(
@@ -46,6 +51,8 @@ struct MainView: View {
                         }
                     }
                 }
+             
+                
                 
             }//VStack
             .padding(.bottom)
@@ -53,7 +60,7 @@ struct MainView: View {
         
         
     }
-    
+
     
 }
 
